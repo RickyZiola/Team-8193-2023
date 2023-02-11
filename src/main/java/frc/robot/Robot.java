@@ -6,6 +6,7 @@ package frc.robot;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.TimedRobot;
@@ -138,13 +139,14 @@ public class Robot extends TimedRobot {
    */
   WPI_TalonFX fld, frd, bld, brd;
   TalonFX_Servo flt, frt, blt, brt;
-  private CANSparkMax intakeMotor = new CANSparkMax(8, MotorType.kBrushless);
+  CANSparkMax intakeMotor;
+  WPI_TalonSRX arm1, arm2;
   Joystick joystick;
   SwerveDrive sd;
   @Override
   public void robotInit() {
     joystick = new Joystick(0);
-
+    
     flt = new TalonFX_Servo(0, 2048/360);
     fld = new WPI_TalonFX(1);
     frt = new TalonFX_Servo(2, 2048/360);
@@ -154,6 +156,12 @@ public class Robot extends TimedRobot {
     brt = new TalonFX_Servo(6, 2048/360);
     brd = new WPI_TalonFX(7);
 
+    intakeMotor = new CANSparkMax(8, MotorType.kBrushless);
+
+    arm1 = new WPI_TalonSRX(9);
+    arm2 = new WPI_TalonSRX(10);
+
+    
     sd = new SwerveDrive(flt, fld, frt, frd, blt, bld, brt, brd);
 
     m_chooser.setDefaultOption("Default Auto", kDefaultAuto);
@@ -213,11 +221,23 @@ public class Robot extends TimedRobot {
     float trim = (float) -joystick.getRawAxis(3) / 4 + .75f;
     System.out.println(trim);
     sd.update((float) joystick.getRawAxis(0) * trim, (float) joystick.getRawAxis(1) * trim, (float) -joystick.getRawAxis(2) * trim);
-    if(joystick.getRawButton(2)) {
+    if(joystick.getRawButton(0)) {
       intakeMotor.set(.5);
     }
-    if(joystick.getRawButton(3)) {
+    if(joystick.getRawButton(1)) {
       intakeMotor.set(-.5);
+    }
+    if(joystick.getRawButton(4)) {
+      arm1.set(ControlMode.Velocity, .5);
+    }
+    if(joystick.getRawButton(2)) {
+      arm1.set(ControlMode.Velocity, -.5);
+    }
+    if(joystick.getRawButton(5)) {
+      arm2.set(ControlMode.Velocity, .5);
+    }
+    if(joystick.getRawButton(3)) {
+      arm2.set(ControlMode.Velocity, -.5);
     }
   }
 
