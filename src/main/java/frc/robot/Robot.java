@@ -143,6 +143,7 @@ public class Robot extends TimedRobot {
   WPI_TalonSRX arm1, arm2;
   Joystick joystick;
   SwerveDrive sd;
+  double targPosX, targPosY = 0;
   @Override
   public void robotInit() {
     joystick = new Joystick(0);
@@ -160,7 +161,6 @@ public class Robot extends TimedRobot {
 
     arm1 = new WPI_TalonSRX(9);
     arm2 = new WPI_TalonSRX(10);
-
     
     sd = new SwerveDrive(flt, fld, frt, frd, blt, bld, brt, brd);
 
@@ -218,6 +218,13 @@ public class Robot extends TimedRobot {
   /** This function is called periodically during operator control. */
   @Override
   public void teleopPeriodic() {
+    if(joystick.getPOV() != -1) {
+    targPosX += Math.cos(joystick.getPOV());
+    targPosY += Math.sin(joystick.getPOV());
+    }
+    if(targPosX > 59) {
+      targPosX = 59;
+    }
     float trim = (float) -joystick.getRawAxis(3) / 4 + .75f;
     System.out.println(trim);
     sd.update((float) joystick.getRawAxis(0) * trim, (float) joystick.getRawAxis(1) * trim, (float) -joystick.getRawAxis(2) * trim);
@@ -227,20 +234,30 @@ public class Robot extends TimedRobot {
     if(joystick.getRawButton(1)) {
       intakeMotor.set(-.5);
     }
-    if(joystick.getRawButton(4)) {
-      arm1.set(ControlMode.Velocity, .5);
-    }
-    if(joystick.getRawButton(2)) {
-      arm1.set(ControlMode.Velocity, -.5);
-    }
-    if(joystick.getRawButton(5)) {
-      arm2.set(ControlMode.Velocity, .5);
-    }
-    if(joystick.getRawButton(3)) {
-      arm2.set(ControlMode.Velocity, -.5);
-    }
+    double[] reverseKinematics = this.reverseKinematics(targPosX, targPosY);
+    arm1.set(ControlMode.Position, reverseKinematics[0] * 300 * (4096 / 360));  ///move the motor to the desired position. Gear ratio is 300 : 1, and encoder ticks per revolution is 4096
+    arm2.set(ControlMode.Position, reverseKinematics[1] * 100 * (4096 / 360)); /// move the motor to the desired position. Gear ratio is 100 : 1, and encoder ticks per revolution is 4096
   }
+  public double[] reverseKinematics(double x, double y) {
 
+    // Define the lengths of the two arm segments
+    double l1 = 10.0; // length of first segment in inches
+    double l2 = 8.0; // length of second segment in inches
+  
+    // Calculate the distance from the origin to the desired position
+    double d = Math.sqrt(x * x + y * y);
+  
+    // Calculate the angle between the first arm segment and the x-axis
+    double theta1 = Math.atan2(y, x) - Math.atan2(Math.sqrt(d * d - l2 * l2), l2);
+  
+    // Calculate the angle between the two arm segments
+    double theta2 = Math.acos((l1 * l1 + l2 * l2 - d * d) / (2 * l1 * l2));
+  
+    // Convert the angles to degrees and return them in an array
+    double[] angles = {Math.toDegrees(theta1), Math.toDegrees(theta1 + theta2)};
+    return angles;
+  }
+  
   /** This function is called once when the robot is disabled. */
   @Override
   public void disabledInit() {}
