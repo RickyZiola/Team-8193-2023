@@ -79,14 +79,20 @@ class SwerveDrive {
       }else if (strafeRatio < 0) {
         strafeRatio = 0;
       }
-      fLeftT = (float)(Math.atan2(-strafe, -drive) * (180 / Math.PI)) + (turn * 90 * driveRatio) + (turn * -90 * strafeRatio);
-      fLeftD = -(float)Math.sqrt((double)(strafe*strafe + drive*drive));
-      fRightT = (float)(Math.atan2(-strafe, -drive) * (180 / Math.PI)) + (turn * 90 * driveRatio) + (turn * 90 * strafeRatio);
-      fRightD = -(float)Math.sqrt((double)(strafe*strafe + drive*drive));
-      bLeftT = (float)(Math.atan2(-strafe, -drive) * (180 / Math.PI)) + (turn * -90 * driveRatio) + (turn * -90 * strafeRatio);
-      bLeftD = -(float)Math.sqrt((double)(strafe*strafe + drive*drive));
-      bRightT = (float)(Math.atan2(-strafe, -drive) * (180 / Math.PI)) + (turn * -90 * driveRatio) + (turn * 90 * strafeRatio);
-      bRightD = -(float)Math.sqrt((double)(strafe*strafe + drive*drive));
+      double[] perpendicularVector = new double[] {-(1 / strafeRatio) * turn, turn};
+      double[] frontWheelDirectionVector = new double[] {(strafeRatio * (Math.sqrt(drive*drive + strafe*strafe))) + perpendicularVector[0], (driveRatio * Math.sqrt(drive*drive+strafe*strafe)) + perpendicularVector[1]};
+      double[] backWheelDirectionVector = new double[] {(strafeRatio * (Math.sqrt(drive*drive + strafe*strafe))) + -perpendicularVector[0], -(driveRatio * Math.sqrt(drive * drive + strafe * strafe)) + -perpendicularVector[1]};
+      double frontWheelDirection = Math.atan2(frontWheelDirectionVector[1], frontWheelDirectionVector[0]);
+      double backWheelDirection = Math.atan2(backWheelDirectionVector[1], backWheelDirectionVector[0]);
+      double wheelPower = Math.sqrt(Math.pow(strafe, 2) + Math.pow(drive, 2));
+      fLeftT = (float) (frontWheelDirection);
+      fLeftD = (float) wheelPower;
+      fRightT = (float) (frontWheelDirection);
+      fRightD = (float) wheelPower;
+      bLeftD = (float) (backWheelDirection);
+      bLeftT = (float) wheelPower;
+      bRightD = (float) (backWheelDirection);
+      bRightT = (float) wheelPower;
     } else if (Math.abs(turn) >= 0.1) {
       turn /= 2;
       fLeftT = -45;
